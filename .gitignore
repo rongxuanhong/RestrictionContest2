@@ -1,0 +1,8 @@
+*~
+*.pyc
+__pychche__/
+checkpoints/
+requirements/darknet53.conv.74
+requirements/yolov3.weights
+.idea
+*.xml
