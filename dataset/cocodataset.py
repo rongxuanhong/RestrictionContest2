@@ -34,9 +34,10 @@ def create_fold(data, save_path):
     annotations = []
     for item in data:
         images.append(item[0])
-        annotations.append(item[1])
+        for a in item[1]:
+            annotations.append(a)
     dataset['images'] = images
-    dataset['annotations'] = annotations[0]
+    dataset['annotations'] = annotations
     with open(save_path, 'w') as f:
         json.dump(dataset, f)
 
@@ -55,6 +56,8 @@ def load_train_val_split(json_data, val_portion=.2):
     images = json_data['images']
     annotations = json_data['annotations']
 
+    print('total annotations: ', len(annotations))
+    print('total images: ', len(images))
     data = []
     max_labels = 0
     for image in images:
@@ -207,4 +210,6 @@ class COCODataset(Dataset):
 if __name__ == '__main__':
     with open('train_no_poly.json', 'r') as f:
         data = json.load(f)
+        # print(data['annotations'])
+        # print(len(data['annotations']))
     load_train_val_split(data)
