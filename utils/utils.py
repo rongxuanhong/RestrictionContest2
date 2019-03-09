@@ -96,7 +96,7 @@ def postprocess(prediction, num_classes, conf_thre=0.7, nms_thre=0.45):
             continue
         # Get score and class with highest confidence
         class_conf, class_pred = torch.max(
-            image_pred[:, 5:5 + num_classes], 1,  keepdim=True)
+            image_pred[:, 5:5 + num_classes], 1, keepdim=True)
 
         # Detections ordered as (x1, y1, x2, y2, obj_conf, class_conf, class_pred)
         detections = torch.cat(
@@ -110,7 +110,7 @@ def postprocess(prediction, num_classes, conf_thre=0.7, nms_thre=0.45):
             detections_class = detections[detections[:, -1] == c]
             nms_in = detections_class.cpu().numpy()
             nms_out_index = nms(
-                nms_in[:, :4], nms_thre, score=nms_in[:, 4]*nms_in[:, 5])
+                nms_in[:, :4], nms_thre, score=nms_in[:, 4] * nms_in[:, 5])
             detections_class = detections_class[nms_out_index]
             if output[i] is None:
                 output[i] = detections_class
@@ -153,10 +153,10 @@ def bboxes_iou(bboxes_a, bboxes_b, xyxy=True):
         area_b = torch.prod(bboxes_b[:, 2:] - bboxes_b[:, :2], 1)
     else:
         tl = torch.max((bboxes_a[:, None, :2] - bboxes_a[:, None, 2:] / 2),
-                        (bboxes_b[:, :2] - bboxes_b[:, 2:] / 2))
+                       (bboxes_b[:, :2] - bboxes_b[:, 2:] / 2))
         # bottom right
         br = torch.min((bboxes_a[:, None, :2] + bboxes_a[:, None, 2:] / 2),
-                        (bboxes_b[:, :2] + bboxes_b[:, 2:] / 2))
+                       (bboxes_b[:, :2] + bboxes_b[:, 2:] / 2))
 
         area_a = torch.prod(bboxes_a[:, 2:], 1)
         area_b = torch.prod(bboxes_b[:, 2:], 1)
@@ -254,7 +254,7 @@ def preprocess(img, imgsize, jitter, random_placing=False):
         # add jitter
         dw = jitter * w
         dh = jitter * h
-        new_ar = (w + np.random.uniform(low=-dw, high=dw))\
+        new_ar = (w + np.random.uniform(low=-dw, high=dw)) \
                  / (h + np.random.uniform(low=-dh, high=dh))
     else:
         new_ar = w / h
@@ -276,10 +276,11 @@ def preprocess(img, imgsize, jitter, random_placing=False):
 
     img = cv2.resize(img, (nw, nh))
     sized = np.ones((imgsize, imgsize, 3), dtype=np.uint8) * 127
-    sized[dy:dy+nh, dx:dx+nw, :] = img
+    sized[dy:dy + nh, dx:dx + nw, :] = img
 
     info_img = (h, w, nh, nw, dx, dy)
     return sized, info_img
+
 
 def rand_scale(s):
     """
@@ -294,6 +295,7 @@ def rand_scale(s):
     if np.random.rand() > 0.5:
         return scale
     return 1 / scale
+
 
 def random_distort(img, hue, saturation, exposure):
     """

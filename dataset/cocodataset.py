@@ -25,7 +25,8 @@ def parse_json(data_dir, annotation_file):
         # assert len(images) == len(labels)
         print('the number of images:', len(images))
         print('the number of annotations: ', len(data["annotations"]))
-        return images, data["annotations"]
+        class_ids = np.unique([x['category_id'] for x in data["annotations"]])
+        return images, data["annotations"], class_ids.tolist()
 
 
 def create_fold(data, save_path):
@@ -124,7 +125,8 @@ class COCODataset(Dataset):
         self.random_distort = augmentation['RANDOM_DISTORT']
 
         # 新增
-        self.imgs, self.annotations = parse_json(data_dir, self.json_file)
+        self.imgs, self.annotations, self.class_ids = parse_json(data_dir, self.json_file)
+        print("Class ids: ", self.class_ids)
 
     def __len__(self):
         return len(self.ids)
@@ -188,8 +190,8 @@ class COCODataset(Dataset):
         for anno in self.annotations:
             if anno['bbox'][2] > self.min_size and anno['bbox'][3] > self.min_size:
                 labels.append([])
-                labels[-1].append(float(anno['category_id']))
-                # labels[-1].append(self.class_ids.index(anno['category_id']))
+                # labels[-1].append(float(anno['category_id']))
+                labels[-1].append(self.class_ids.index(anno['category_id']))
                 labels[-1].extend(float(x) for x in anno['bbox'])
                 # print(labels)
 
@@ -210,6 +212,4 @@ class COCODataset(Dataset):
 if __name__ == '__main__':
     with open('train_no_poly.json', 'r') as f:
         data = json.load(f)
-        # print(data['annotations'])
-        # print(len(data['annotations']))
     load_train_val_split(data)

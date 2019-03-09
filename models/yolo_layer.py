@@ -25,19 +25,20 @@ class YOLOLayer(nn.Module):
         super(YOLOLayer, self).__init__()
         strides = [32, 16, 8]  # fixed
         self.anchors = config_model['ANCHORS']
-        self.anch_mask = config_model['ANCH_MASK'][layer_no]
-        self.n_anchors = len(self.anch_mask)
-        self.n_classes = config_model['N_CLASSES']
+        self.anch_mask = config_model['ANCH_MASK'][layer_no]  # 用于选择当前尺度的anchors
+        self.n_anchors = len(self.anch_mask)  # 3
+        self.n_classes = config_model['N_CLASSES']  # 80
         self.ignore_thre = ignore_thre
         self.l2_loss = nn.MSELoss(reduction='sum')
         self.bce_loss = nn.BCELoss(reduction='sum')
-        self.stride = strides[layer_no]
+        self.stride = strides[layer_no]  # 当前feature map相对于原图的缩小步长
         self.all_anchors_grid = [(w / self.stride, h / self.stride)
                                  for w, h in self.anchors]
+        print("all_anchors_grid: ", self.all_anchors_grid)
         self.masked_anchors = [self.all_anchors_grid[i]
-                               for i in self.anch_mask]
-        self.ref_anchors = np.zeros((len(self.all_anchors_grid), 4))
-        self.ref_anchors[:, 2:] = np.array(self.all_anchors_grid)
+                               for i in self.anch_mask]  # 当前层用到的anchor基准
+        self.ref_anchors = np.zeros((len(self.all_anchors_grid), 4))  # (9,4)
+        self.ref_anchors[:, 2:] = np.array(self.all_anchors_grid)  # anchors的基准坐标
         self.ref_anchors = torch.FloatTensor(self.ref_anchors)
         self.conv = nn.Conv2d(in_channels=in_ch,
                               out_channels=self.n_anchors * (self.n_classes + 5),
