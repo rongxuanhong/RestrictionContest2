@@ -104,13 +104,12 @@ class COCODataset(Dataset):
         self.data_dir = data_dir
         self.json_file = json_file
         self.model_type = model_type
-        # annotation_file = self.data_dir + self.json_file
         self.coco = COCO(self.json_file)
         self.ids = self.coco.getImgIds()
         if debug:
             self.ids = self.ids[1:2]
             print("debug mode...", self.ids)
-        # self.class_ids = sorted(self.coco.getCatIds())
+        self.class_ids = sorted(self.coco.getCatIds())
         self.name = name
         self.max_labels = 8  # 当前数据集最大为8
         # self.max_labels = 50
@@ -125,8 +124,8 @@ class COCODataset(Dataset):
         self.random_distort = augmentation['RANDOM_DISTORT']
 
         # 新增
-        self.imgs, self.annotations, self.class_ids = parse_json(data_dir, self.json_file)
-        print("Class ids: ", self.class_ids)
+        # self.imgs, self.annotations, self.class_ids = parse_json(data_dir, self.json_file)
+        # print("Class ids: ", self.class_ids)
 
     def __len__(self):
         return len(self.ids)
@@ -151,19 +150,19 @@ class COCODataset(Dataset):
                 dx, dy (int): pad size
             id_ (int): same as the input index. Used for evaluation.
         """
-        # id_ = self.ids[index]
-        img_file = self.imgs[index]
-        #
-        # anno_ids = self.coco.getAnnIds(imgIds=[int(id_)], iscrowd=None)
-        # annotations = self.coco.loadAnns(anno_ids)
+        id_ = self.ids[index]
 
+        anno_ids = self.coco.getAnnIds(imgIds=[int(id_)], iscrowd=None)
+        annotations = self.coco.loadAnns(anno_ids)
         lrflip = False
         if np.random.rand() > 0.5 and self.lrflip == True:
             lrflip = True
 
         # load image and preprocess
+        image_name = self.coco.imgs[id_]['file_name']
         # img_file = os.path.join(self.data_dir, self.name,
         #                         '{:012}'.format(id_) + '.jpg')
+        img_file = os.path.join(self.data_dir, 'restricted', image_name)
         # print(img_file)
         img = cv2.imread(img_file)
 
@@ -186,14 +185,12 @@ class COCODataset(Dataset):
 
         # load labels
         labels = []
-        # for anno in annotations:
-        for anno in self.annotations:
+        for anno in annotations:
             if anno['bbox'][2] > self.min_size and anno['bbox'][3] > self.min_size:
                 labels.append([])
-                # labels[-1].append(float(anno['category_id']))
                 labels[-1].append(self.class_ids.index(anno['category_id']))
+                # labels[-1].extend(anno['bbox'])
                 labels[-1].extend(float(x) for x in anno['bbox'])
-                # print(labels)
 
         padded_labels = np.zeros((self.max_labels, 5))
         if len(labels) > 0:
@@ -204,9 +201,8 @@ class COCODataset(Dataset):
             ] = labels[:self.max_labels]
         padded_labels = torch.from_numpy(padded_labels)
 
-        return img, padded_labels, info_img, '1'
-
-        # return img, padded_labels, info_img, id_
+        print("padded_labels shape :", padded_labels.shape)
+        return img, padded_labels, info_img, id_
 
 
 if __name__ == '__main__':

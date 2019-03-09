@@ -34,7 +34,7 @@ class YOLOLayer(nn.Module):
         self.stride = strides[layer_no]  # 当前feature map相对于原图的缩小步长
         self.all_anchors_grid = [(w / self.stride, h / self.stride)
                                  for w, h in self.anchors]
-        print("all_anchors_grid: ", self.all_anchors_grid)
+        # print("all_anchors_grid: ", self.all_anchors_grid)
         self.masked_anchors = [self.all_anchors_grid[i]
                                for i in self.anch_mask]  # 当前层用到的anchor基准
         self.ref_anchors = np.zeros((len(self.all_anchors_grid), 4))  # (9,4)
